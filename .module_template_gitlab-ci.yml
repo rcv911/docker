@@ -1,0 +1,205 @@
+stages:
+  - build
+  - test
+  - doc
+  - stage
+  - deploy
+
+# for submodule templaete if u have
+# The submodule is used for a generic script to recreate containers and run unit tests
+.update_submodules: &update_submodules |
+    export IMAGE_NAME=${CI_PROJECT_NAME,,}
+    git submodule sync --recursive
+    git submodule update --init --recursive --remote --merge
+
+.check_blank_image: &check_base_image |
+      if [[ ! "$(docker images -q base_image:latest 2> /dev/null)" == "" ]]; then
+        sudo docker pull YOUR_REPO/base_image:latest;
+        sudo docker tag YOUR_REPO/base_image:latest base_image:latest;
+        sudo docker rmi YOUR_REPO/base_image:latest;
+      fi
+
+.build_image: &build_image |
+
+      sudo docker build --no-cache --rm --build-arg PCKG_VERSION=$PCKG_VERSION -f Dockerfiles/Dockerfile --tag=${IMAGE_NAME}:${CI_COMMIT_REF_SLUG} .
+
+.check_requests: &check_requests |
+    python3.6 -c "import requests"
+    if [[ ! $? == 0 ]]; then
+        sudo apt install python3-requests
+    fi
+
+# private repo for your own packages ->  Use devpi-client
+.upload_wheel: &upload_wheel |
+    python3 -c "import devpi"
+    if [[ ! $? == 0 ]]; then
+        sudo apt install python3-devpi
+    fi
+    
+# Submodule pip.conf -> You need to configurate
+# The submodule is used for a generic script to recreate containers and run unit tests
+
+    # cp -r ./YOUR_SUBMODULE/.pip ~/
+    
+    # sudo pip3 install devpi-client
+    # devpi use ${REPO_URL}
+    # devpi login ${REPO_LOGIN} --password=${REPO_PASSWORD}
+    # devpi use ${REPO_LOGIN}/main
+    # devpi upload
+
+# run test if u have in your module
+.run_tests: &run_tests |
+    cd ./test
+    python3 ./test.py
+    cd ../
+
+# UNSTABLE SERVER - TESTS and NEW BACKEND FUNCIONAL
+build:1:
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    PCKG_VERSION: "develop"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_base_image
+    - *build_image
+  except:
+    - master
+    - develop
+  tags:
+    - YOUR_UNSTABLE_BUILD
+
+# STABLE SERVER - TESTS and FRONTEND FUNCIONAL
+build:2:
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    PCKG_VERSION: "develop"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_base_image
+    - *build_image
+    - *upload_image
+  only:
+    - develop
+  tags:
+    - YOUR_STABLE_BUILD
+
+# QA SERVER - PRE-PRODUCTION SERVER
+build:3:
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    PCKG_VERSION: "master"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_base_image
+    - *build_image
+    - *upload_image
+  only:
+    - master
+  tags:
+    - YOUR_QA_BUILD
+
+# Remove if you don't need -------------------
+test:1:
+  stage: test
+  variables:
+    PCKG_VERSION: "develop"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_requests
+    # - RECREATE CONTAINERS FROM SBMODULE
+    - sleep 10
+    - *run_tests
+  tags:
+    - YOUR_UNSTABLE_TEST
+  except:
+    - master
+    - develop
+
+test:2:
+  stage: test
+  variables:
+    PCKG_VERSION: "develop"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_requests
+    # - RECREATE CONTAINERS FROM SBMODULE
+    - sleep 10
+    - *run_tests
+  tags:
+    - YOUR_STABLE_TEST
+  only:
+    - develop
+
+test:3:
+  stage: test
+  variables:
+    PCKG_VERSION: "master"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+  before_script:
+    - *update_submodules
+  script:
+    - *check_requests
+    # - RECREATE CONTAINERS FROM SBMODULE
+    - sleep 10
+    - *run_tests
+  tags:
+    - YOUR_QA_TEST
+  only:
+    - master
+
+# Python documentation stage. Remove if you don't need -------------------
+doc:1:
+  stage: doc
+  variables:
+    PCKG_VERSION: "develop"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+    REPO_LOGIN: "YOUR_LOGIN"
+    REPO_PASSWORD: "YOUR_PASSWORD"
+    REPO_URL: "YOUR_REPO"
+  before_script:
+    - *update_submodules
+  script:
+    - *upload_wheel
+  tags:
+    - YOUR_STABLE_TEST
+  only:
+    - develop
+
+doc:2:
+  stage: doc
+  variables:
+    PCKG_VERSION: "master"
+    API_URL: "YOUR_SITE"
+    API_PORT: "YOUR_PORT"
+    REPO_LOGIN: "YOUR_LOGIN"
+    REPO_PASSWORD: "YOUR_PASSWORD"
+    REPO_URL: "YOUR_REPO"
+  before_script:
+    - *update_submodules
+  script:
+    - *upload_wheel
+  tags:
+    - YOUR_QA_TEST
+  only:
+    - master
+

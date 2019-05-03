@@ -1,0 +1,7 @@
+version: '2'
+services:
+  base_image:
+    container_name: base_image_template
+    build:
+      context: ./
+      dockerfile: Dockerfile

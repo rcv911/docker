@@ -12,57 +12,57 @@ Useful commands that I use every day
 
 ## Docker Commands
  
-### Show information
+##### Show information
 >sudo docker ps --size
 
-### Список image с указанием размера, количества и активных image
+##### Список image с указанием размера, количества и активных image
 >sudo docker system df
 
-### Delete unused images
+##### Delete unused images
 >sudo docker image prune -a
 
-### Delete unused images by CREATED date
+##### Delete unused images by CREATED date
 >sudo docker image prune -a --filter "until=$(date +'%Y-%m-%dT%H:%M:%S' --date='-15 days')"
 
-### Delete all containers
+##### Delete all containers
 >docker rm $(docker ps -a -q)
 
-### Delete all images
+##### Delete all images
 >docker rmi $(docker images -q)
 
-### Stop all images (better use kill)
+##### Stop all images (better use kill)
 >docker kill $(docker ps -a -q)
 >sudo docker kill $( sudo docker ps -a -q)
 >docker stop $(docker ps -a -q)
 
-### Restart all containers
+##### Restart all containers
 >docker restart $(docker ps -a -q)
 
-### Delete all stopped images
+##### Delete all stopped images
 >sudo docker rm $(sudo docker ps -q -f status=exited)
 
-### Delete all dangling (unused) images
+##### Delete all dangling (unused) images
 >sudo docker rmi $(sudo docker images -q -f dangling=true)
 
-### Delete all dangling (unused) volumes -> volumes remains after deleting containers and images
+##### Delete all dangling (unused) volumes -> volumes remains after deleting containers and images
 >sudo docker volume rm $( sudo docker volume ls -q) 
 
-### Stop(kill) all containers with name <container_name>
+##### Stop(kill) all containers with name <container_name>
 >sudo docker kill $( sudo docker ps -aqf "name=<container_name>")
 
-### Узнать  подключился ли процесс к определенному порту/сокету
+##### Узнать  подключился ли процесс к определенному порту/сокету
 >sudo lsof -i :<port>
 
-### Show container information in JSON:
+##### Show container information in JSON:
 >docker inspect container_name
 
 
 ## Docker Image Controls
 
-### Save image
+##### Save image
 >docker save -o <path for generated tar file> <image name>
 
-### Load image
+##### Load image
 >docker load -i <path to image tar file>
 
 ## Links

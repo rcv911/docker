@@ -1,0 +1,12 @@
+stages:
+  - build
+
+build:1:
+  stage: build
+  script:
+    - sudo docker build --rm --tag=${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG} .
+  only:
+    - master
+    - develop
+  tags:
+    - STABLE_BUILD
