@@ -51,7 +51,7 @@ Useful commands that I use every day
 >sudo docker kill $( sudo docker ps -aqf "name=<container_name>")
 
 ##### Узнать  подключился ли процесс к определенному порту/сокету
->sudo lsof -i :<port>
+>sudo lsof -i : *port*
 
 ##### Show container information in JSON:
 >docker inspect container_name
@@ -60,10 +60,10 @@ Useful commands that I use every day
 ## Docker Image Controls
 
 ##### Save image
->docker save -o <path for generated tar file> <image name>
+>docker save -o *path_for_generated_tar_file* *image_name*
 
 ##### Load image
->docker load -i <path to image tar file>
+>docker load -i *path_to_image_tar_file*
 
 ## Links
 
